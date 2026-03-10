@@ -1,0 +1,401 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-color: #0b0c10;
+  --panel-bg: rgba(31, 40, 51, 0.7);
+  --primary-color: #4facfe;
+  --secondary-color: #00f2fe;
+  --text-primary: #ffffff;
+  --text-secondary: #c5c6c7;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --danger-color: #ff4b4b;
+  --success-color: #00e676;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Nice background mesh gradient */
+  background-image:
+    radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 0.2) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 0.2) 0, transparent 50%);
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+h4,
+hr,
+p {
+  margin: 0;
+  padding: 0;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Base button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  box-shadow: 0 6px 20px rgba(255, 75, 75, 0.4);
+}
+
+.btn-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Inputs */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.input-field {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
+}
+
+/* Dashboard Layout */
+.dashboard-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.dashboard-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.dashboard-header {
+  text-align: center;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #fff 0%, #c5c6c7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dashboard-header p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.dashboard-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.divider::not(:empty)::before {
+  margin-right: 16px;
+}
+
+.divider::not(:empty)::after {
+  margin-left: 16px;
+}
+
+/* Meeting Room Layout */
+.room-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-header {
+  height: 70px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(11, 12, 16, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.room-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.room-title h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.room-id-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.room-id-badge:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.room-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+}
+
+/* Video Grid layout */
+.video-grid {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-content: center;
+  justify-content: center;
+  overflow-y: auto;
+  /* Keep it contained to avoid scrolling if possible */
+  max-height: calc(100vh - 70px);
+  padding-bottom: 90px;
+}
+
+.video-container {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  /* Force a 16:9 ratio for cameras */
+  aspect-ratio: 16/9;
+
+  /* Flexbox dynamic scaling */
+  /* Do not let the last item grow out of proportion */
+  flex-grow: 0;
+  flex-shrink: 0;
+
+  /* Use the exact percentage computed by React minus gap padding */
+  width: calc(var(--video-width) * 1% - 16px);
+  /* Ensure a minimum width so UI doesn't break if 20 people join */
+  min-width: 250px;
+
+  animation: zoomIn 0.3s ease-out forwards;
+}
+
+/* Specific overrides for visual polish for 1 and 2 participants to center them perfectly */
+.video-grid-1 .video-container {
+  max-width: calc(75vh * 16 / 9);
+  margin: auto;
+}
+
+.video-grid-2 .video-container {
+  max-width: calc(45vh * 16 / 9);
+  margin: auto;
+}
+
+.video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Mirror the local video */
+.local-video {
+  transform: scaleX(-1);
+}
+
+.video-label {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  z-index: 2;
+}
+
+/* Controls Bar */
+.controls-bar {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  border-radius: 30px;
+  z-index: 10;
+}
+
+.btn-control {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.btn-control:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-control.active {
+  background: var(--primary-color);
+}
+
+.btn-control.inactive {
+  background: var(--danger-color);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
