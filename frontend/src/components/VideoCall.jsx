@@ -5,13 +5,71 @@ import { Mic, MicOff, Video as VideoIcon, VideoOff, AlertTriangle } from 'lucide
 // Sub-component to render the video element correctly from a MediaStream setup
 const Video = ({ stream, isLocal, isVideoMuted, isAudioMuted, name, isHost }) => {
     const ref = useRef();
+    const [audioLevels, setAudioLevels] = useState([15, 15, 15]);
 
     useEffect(() => {
+        let audioContext;
+        let analyser;
+        let source;
+        let animationFrameId;
+
         if (ref.current && stream) {
             ref.current.srcObject = stream;
             // Hack to ensure audio plays perfectly in some browsers without user interaction
             if (!isLocal) ref.current.play().catch(e => console.error("Video play failed", e));
+
+            // Set up AudioContext for visualizer if there's an audio track
+            if (stream.getAudioTracks().length > 0) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 64; // Small FFT for simple amplitude visualization
+                    source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+
+                    const dataArray = new Uint8Array(analyser.frequencyBinCount); // 32 bins
+
+                    const updateLevels = () => {
+                        analyser.getByteFrequencyData(dataArray);
+
+                        let b1 = 0, b2 = 0, b3 = 0;
+                        // Grab peak frequencies instead of averages
+                        // Focusing entirely on the lower/mid voice bands (0-16 bins out of 32)
+                        // This ensures all 3 bars get strong voice activity
+                        for (let i = 0; i < 4; i++) if (dataArray[i] > b1) b1 = dataArray[i];
+                        for (let i = 4; i < 9; i++) if (dataArray[i] > b2) b2 = dataArray[i];
+                        for (let i = 9; i < 16; i++) if (dataArray[i] > b3) b3 = dataArray[i];
+
+                        const normalize = (val) => Math.min(100, Math.max(15, (val / 255) * 200));
+
+                        setAudioLevels([
+                            normalize(b1),
+                            normalize(b2),
+                            normalize(b3)
+                        ]);
+
+                        animationFrameId = requestAnimationFrame(updateLevels);
+                    };
+
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+
+                    updateLevels();
+                } catch (err) {
+                    console.error("Audio visualizer error:", err);
+                }
+            }
         }
+
+        return () => {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (source) source.disconnect();
+            if (analyser) analyser.disconnect();
+            if (audioContext && audioContext.state !== 'closed') {
+                audioContext.close().catch(e => console.error(e));
+            }
+        };
     }, [stream, isLocal]);
 
     return (
@@ -19,7 +77,7 @@ const Video = ({ stream, isLocal, isVideoMuted, isAudioMuted, name, isHost }) =>
             <video
                 playsInline
                 autoPlay
-                muted={isLocal}
+                muted={isLocal || isAudioMuted}
                 ref={ref}
                 style={{ opacity: isVideoMuted ? 0 : 1 }}
                 className={`video-element ${isLocal ? 'local-video' : ''}`}
@@ -40,9 +98,18 @@ const Video = ({ stream, isLocal, isVideoMuted, isAudioMuted, name, isHost }) =>
                     {isVideoMuted && <VideoOff size={16} />}
                 </div>
             )}
-            <div className="video-label">
-                {name || (isLocal ? 'You' : 'Participant')}
-                {isHost && <span style={{ marginLeft: '6px', background: 'var(--primary-color)', padding: '2px 6px', borderRadius: '10px', fontSize: '0.7em', fontWeight: 'bold' }}>HOST</span>}
+            <div className="video-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: 'fit-content', gap: '12px' }}>
+                <div>
+                    {name || (isLocal ? 'You' : 'Participant')}
+                    {isHost && <span style={{ marginLeft: '6px', background: 'var(--primary-color)', padding: '2px 6px', borderRadius: '10px', fontSize: '0.7em', fontWeight: 'bold' }}>HOST</span>}
+                </div>
+                {!isAudioMuted && (
+                    <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end', height: '16px' }} title="Voice Activity">
+                        <div style={{ width: '4px', height: `${audioLevels[0]}%`, background: '#ffffff', borderRadius: '2px', transition: 'height 0.1s ease' }} />
+                        <div style={{ width: '4px', height: `${audioLevels[1]}%`, background: '#ffffff', borderRadius: '2px', transition: 'height 0.1s ease' }} />
+                        <div style={{ width: '4px', height: `${audioLevels[2]}%`, background: '#ffffff', borderRadius: '2px', transition: 'height 0.1s ease' }} />
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -274,15 +341,16 @@ const VideoCall = ({ roomID, userName, isCreator }) => {
 
     const toggleAudio = () => {
         if (userStream.current) {
-            const audioTrack = userStream.current.getAudioTracks()[0];
-            if (audioTrack) {
-                audioTrack.enabled = !audioTrack.enabled;
-                setIsAudioMuted(!audioTrack.enabled);
+            const audioTracks = userStream.current.getAudioTracks();
+            if (audioTracks.length > 0) {
+                const newState = !audioTracks[0].enabled;
+                audioTracks.forEach(track => track.enabled = newState);
+                setIsAudioMuted(!newState);
 
                 socketRef.current.emit('toggle media', {
                     roomID,
                     type: 'audio',
-                    enabled: audioTrack.enabled
+                    enabled: newState
                 });
             }
         }
@@ -290,15 +358,16 @@ const VideoCall = ({ roomID, userName, isCreator }) => {
 
     const toggleVideo = () => {
         if (userStream.current) {
-            const videoTrack = userStream.current.getVideoTracks()[0];
-            if (videoTrack) {
-                videoTrack.enabled = !videoTrack.enabled;
-                setIsVideoMuted(!videoTrack.enabled);
+            const videoTracks = userStream.current.getVideoTracks();
+            if (videoTracks.length > 0) {
+                const newState = !videoTracks[0].enabled;
+                videoTracks.forEach(track => track.enabled = newState);
+                setIsVideoMuted(!newState);
 
                 socketRef.current.emit('toggle media', {
                     roomID,
                     type: 'video',
-                    enabled: videoTrack.enabled
+                    enabled: newState
                 });
             }
         }
